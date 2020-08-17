@@ -1,0 +1,6 @@
+{
+  "setup": "sets up remotes",
+  "put": "uploads files",
+  "libs": "manage libs for upldr",
+  "serve": "run local server instance"
+}

@@ -1,8 +1,4 @@
 import logging
-import platform
-import yaml
-import psutil
-import multiprocessing
 
 class Util:
   @staticmethod
@@ -31,23 +27,3 @@ class Util:
     log.addHandler(consoleHandler)
 
     return log
-
-  @staticmethod
-  def system_info():
-    arch = platform.machine()
-    version = platform.version()
-    kernel = platform.platform()
-    mem = psutil.virtual_memory().total
-    cores = multiprocessing.cpu_count()
-    os = platform.system()
-    cpu = platform.processor()
-    return {
-      'os': os,
-      'kernel': kernel,
-      'version': version,
-      'arch': arch,
-      'memory': "{}G".format(mem/(1024.**3)),
-      'cores': cores,
-      'cpu': cpu
-    }
-    

@@ -1,5 +1,3 @@
-import argparse
-import logging
 import sys
 import subprocess
 from clilib.util.util import Util

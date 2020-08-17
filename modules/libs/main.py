@@ -27,7 +27,7 @@ class main:
         self.lib_dir = self.user_home + "/.upldr/lib"
         self.lib_config = self.upldr_config_dir + "/libs.yaml"
         self.default_repos = {
-            'media-server-api': 'git@bitbucket.org:ccp-gleblanc/media-server-api.git'
+            'media-server-api': 'git@github.com:gageleblanc/media-server-api.git'
         }
         lib_dir = Path(self.lib_dir)
         lib_dir.mkdir(parents=True, exist_ok=True)

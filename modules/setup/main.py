@@ -15,7 +15,7 @@ class main:
         parser_baz = subparser.add_parser('setup',
                                           help='Sets up a remote for uploads. This can be specified in the upload command.',
                                           description='Sets up a remote for uploads. This can be specified in the upload command.')
-        parser_baz.add_argument('-l', help="Set remote as default", action='store_true', required=False, default=False)
+        parser_baz.add_argument('-l', help="List remotes", action='store_true', required=False, default=False)
         parser_baz.add_argument('-n', '--name', help="Name of the remote to be added.", required='-l' not in sys.argv)
         parser_baz.add_argument('-u', '--remote-url', help="API Url for the remote.", required=False)
         parser_baz.add_argument('-s', '--scheme', help="API scheme for the remote.", required=False)

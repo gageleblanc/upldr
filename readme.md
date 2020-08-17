@@ -1,6 +1,6 @@
 # UPLDR
 
-upldr is a tool I created to quickly transfer larger files between boxes in my lab without using scp. It's not a groundbreaking tool by any means, and scp is definitely more secure. There's also a separate tool written in node that can be used with upldr (and upldr was written with in mind) that exposes an api and manages uploads and upload destinations on a remote server. I plan/ned on using this to manage media (photos, videos) quickly from my desktop to a storage server in my lab.
+upldr is a tool I created to quickly transfer larger files between boxes in my lab without using scp. It's not a groundbreaking tool by any means, and scp is definitely more secure. There's also a separate tool written in node that can be used with upldr (and upldr was written with in mind) that exposes an api and manages uploads and upload destinations on a remote server. I plan/ned on using this to manage media (photos, videos) quickly from my desktop to a storage server in my lab. If you want to use the api server and default java upload slave, you'll need to have nodejs and npm installed as well as java.
 
 ## Docs
 upldr is pretty simple and only really has 4 main functions:

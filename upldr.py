@@ -9,6 +9,8 @@ from clilib.util.loader import Loader
 modules = Loader.getActiveModules()
 
 args, _ = arg_tools.command_parser(modules.keys())
-module = importlib.import_module("modules." + args.command[0] + ".main")
-#util.dump_module(args, module)
-module.main()
+try:
+    module = importlib.import_module("modules." + args.command[0] + ".main")
+    module.main()
+except ModuleNotFoundError as ex:
+    print("Command not found: " + args.command[0] + ". Command must be one of " + ",".join(modules.keys()))

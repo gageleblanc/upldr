@@ -11,6 +11,8 @@ import requests
 import socket
 import time
 import os
+from sys import platform
+
 
 class main:
     def __init__(self):
@@ -49,7 +51,10 @@ class main:
         remote_api_path = '/api/job/upload'
         remote_url = remote_base_url + remote_api_path
         file_path = self.args.name
-        file_name = self.args.name.split('/')[-1]
+        if platform == "win32":
+            file_name = self.args.name.split('\\')[-1]
+        else:
+            file_name = self.args.name.split('/')[-1]
         request = {'filename': file_name, 'type': 'upldr', 'name': file_name, 'category': self.args.category, 'tag': self.args.tag}
         # params = json.dumps(request).encode('utf8')
         req = requests.post(remote_url, json=request)

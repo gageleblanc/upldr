@@ -33,7 +33,7 @@ The only available commands for the libs function are install, delete, and list.
 ### put
 Put is used to upload a file.
 ```bash
-$ upldr put --help                                                                                                                                             (master) 
+$ upldr put --help 
 usage: upldr put [-h] [-r REMOTE] [-m] [--debug] [-p PORT] [-a REMOTE_HOST] [-c CATEGORY] [-t TAG] name
 
 Uploads file to remote.
@@ -118,7 +118,7 @@ The standalone mode by default will start a java slave with the specified port a
 ### setup
 The setup function handles setting up remotes.
 ```bash
-$ upldr setup --help                                                                                                                                         (master) 
+$ upldr setup --help 
 usage: upldr setup [-h] [-l] -n NAME [-u REMOTE_URL] [-s SCHEME] [-p PORT] [-t T] [--debug] [-a] [-r] [-d]
 
 Sets up a remote for uploads. This can be specified in the upload command.

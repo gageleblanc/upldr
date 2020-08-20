@@ -33,8 +33,8 @@ The only available commands for the libs function are install, delete, and list.
 ### put
 Put is used to upload a file.
 ```bash
-$ upldr put --help
-usage: upldr put [-h] [-r REMOTE] [-m] [--debug] [-p PORT] [-a REMOTE_HOST] name
+$ upldr put --help                                                                                                                                             (master) 
+usage: upldr put [-h] [-r REMOTE] [-m] [--debug] [-p PORT] [-a REMOTE_HOST] [-c CATEGORY] [-t TAG] name
 
 Uploads file to remote.
 
@@ -50,13 +50,22 @@ optional arguments:
   -p PORT, --port PORT  Port for manual mode
   -a REMOTE_HOST, --remote-host REMOTE_HOST
                         Remote host to use instead of configured remote
+  -c CATEGORY, --category CATEGORY
+                        Category for uploaded file
+  -t TAG, --tag TAG     Tag for uploaded file
 ```
-The put command takes a positional argument of the filename you'd like to upload. Without any arguments, upldr will attempt to upload your file to the default remote specified in ~/.config/upldr/remotes.yaml. If you don't want remotes or don't have any remotes configured yet, you can upload to standalone instances of the upload slave that are running with the -m flag. You can use the -a/--remote-host flag to specify the host of the slave and the --port flag to specify the port to connect to.
+The put command takes a positional argument of the filename you'd like to upload. Without any arguments, upldr will attempt to upload your file to the default remote specified in ~/.config/upldr/remotes.yaml with the category and tag of default. If you don't want remotes or don't have any remotes configured yet, you can upload to standalone instances of the upload slave that are running with the -m flag. You can use the -a/--remote-host flag to specify the host of the slave and the --port flag to specify the port to connect to. You can use the -c/--category tag to specify a category other than default. The -t/--tag argument works the same way and can be used to for a different tag than default.
 
 Example with remotes (default remote):
 ```bash
 $ upldr put file.txt
 ```
+Example with remotes, category, and tag (default remote):
+```bash
+$ upldr put file.txt -c text_files -t readmes
+```
+This will upload file.txt to <data_dir>/text_files/readmes/file.txt
+
 Example with remotes (specified remote):
 ```bash
 $ upldr put file.txt -r remote2

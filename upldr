@@ -8,7 +8,7 @@ modules = Loader.getActiveModules()
 
 args, _ = arg_tools.command_parser(modules.keys())
 try:
-    module = importlib.import_module("modules." + args.command[0] + ".main")
+    module = importlib.import_module("upldr_libs.modules." + args.command[0] + ".main")
     module.main()
 except ModuleNotFoundError as ex:
     print("Command not found: " + args.command[0] + ". Command must be one of " + ", ".join(modules.keys()))

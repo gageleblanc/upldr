@@ -139,3 +139,6 @@ optional arguments:
   -d                    Set remote as default
 ```
 Setup only takes flags as arguments. -n/--name will always refer to the name of the remote in context to what action you're preforming. You can delete remotes with -r/--delete. You can set a remote as default with -d. You can list your current remotes with -l and you can add a remote by specifying a name, scheme, url, and port without the delete flag. 
+
+### Additional Notes
+* Any released versions in the repository correspond to versions available on PyPi.

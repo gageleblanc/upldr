@@ -23,6 +23,8 @@ class main:
         parser_baz.add_argument('--debug', help="Enable debug", action='store_true', required=False, default=False)
         parser_baz.add_argument('-p', '--port', help="Port for manual mode", required=False, default=False)
         parser_baz.add_argument('-a', '--remote-host', help="Remote host to use instead of configured remote", required=False, default=False)
+        parser_baz.add_argument('-c', '--category', help="Category for uploaded file", required=False, default='default')
+        parser_baz.add_argument('-t', '--tag', help="Tag for uploaded file", required=False, default='default')
 
         args = parser.parse_args()
         self.args = args
@@ -48,7 +50,7 @@ class main:
         remote_url = remote_base_url + remote_api_path
         file_path = self.args.name
         file_name = self.args.name.split('/')[-1]
-        request = {'filename': file_name, 'type': 'upldr', 'name': file_name}
+        request = {'filename': file_name, 'type': 'upldr', 'name': file_name, 'category': self.args.category, 'tag': self.args.tag}
         # params = json.dumps(request).encode('utf8')
         req = requests.post(remote_url, json=request)
         response = req.json()

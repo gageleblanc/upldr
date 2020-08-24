@@ -21,6 +21,7 @@ class main:
             parser_baz.add_argument('--bind-addr', help="Address for slave to bind to", required=False, default='localhost')
             parser_baz.add_argument('--timeout', help="Time in seconds before server times out", type=int, required=False,
                                     default=30)
+            parser_baz.add_argument('--resume', help='Resume file upload - start from current end of file position.', action='store_true', required=False, default=False)
 
         args = parser.parse_args()
         self.args = args
@@ -51,7 +52,15 @@ class main:
         port = self.args.port
         self.log.info("Binding to " + host + ":" + port)
         s.bind((host, int(port)))
-        f = open(self.args.destination, 'wb')
+        if self.args.resume:
+            f = open(self.args.destination, 'ab')
+            if f.tell() > 1500:
+                f.seek(-1500, 1)
+            else:
+                f.seek(0)
+            self.log.info("Resuming upload from %d" % f.tell())
+        else:
+            f = open(self.args.destination, 'wb')
         self.log.info("Listening with " + str(self.args.timeout) + " second timeout...")
         s.settimeout(int(self.args.timeout))
         s.listen(5)
@@ -62,7 +71,7 @@ class main:
             exit(1)
         self.log.info("Accepted connection")
         l = c.recv(8192)
-        while (l):
+        while l:
             f.write(l)
             l = c.recv(8192)
         f.close()

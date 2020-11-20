@@ -8,15 +8,48 @@ import os
 
 class main:
     def __init__(self):
-        parser = arg_tools.build_full_parser()
-        subparser = parser.add_subparsers(dest='cmd',
-                                          description='Tools for managing upldr external libraries')
-        parser_baz = subparser.add_parser('libs', help='Tools for managing upldr external libraries',
-                                          description='Tools for managing upldr external libraries')
-        parser_baz.add_argument('command', help="Command to run.")
-        parser_baz.add_argument('--name', help="Library name", required='delete' in sys.argv)
-
-        args = parser.parse_args()
+        self.command_methods = {
+            "install": self.download_default_libs,
+            "delete": self.delete_lib,
+            "list": self.dump_config
+        }
+        self.spec = {
+            "desc": "Tools for managing upldr external libraries",
+            "name": "libs",
+            "positionals": [
+                {
+                    "name": "command",
+                    "metavar": "COMMAND",
+                    "help": 'Supported subcommands are: {}'.format(", ".join(self.command_methods.keys())),
+                    "default": "list",
+                    "type": str
+                }
+            ],
+            "flags": [
+                {
+                    "names": ["--name"],
+                    "help": "Library name.",
+                    "required": 'delete' in sys.argv,
+                    "default": False,
+                    "type": str
+                },
+                {
+                    "names": ["--debug"],
+                    "help": "Print additional debugging information.",
+                    "required": False,
+                    "default": False,
+                    "type": bool
+                }
+            ]
+        }
+        args = arg_tools.build_full_subparser(self.spec)
+        # subparser = parser.add_subparsers(dest='cmd',
+        #                                   description='Tools for managing upldr external libraries')
+        # parser_baz = subparser.add_parser('libs', help='Tools for managing upldr external libraries',
+        #                                   description='Tools for managing upldr external libraries')
+        # parser.add_argument('command', help="Command to run.")
+        # parser.add_argument('--name', help="Library name", required='delete' in sys.argv)
+        # args = parser.parse_args()
         self.args = args
         self.log = Util.configure_logging(args, __name__)
         self.log.debug(args)
@@ -31,15 +64,7 @@ class main:
         lib_dir.mkdir(parents=True, exist_ok=True)
         config_dir = Path(self.upldr_config_dir)
         config_dir.mkdir(parents=True, exist_ok=True)
-        # Clean this up with a map later, idiot
-        if self.args.command == "install":
-            self.download_default_libs()
-        elif self.args.command == "delete":
-            self.delete_lib()
-        elif self.args.command == "list":
-            self.dump_config()
-        else:
-            parser.print_help()
+        self.command_methods[args.command]()
 
     def dump_config(self):
         print("---\n%s" % yaml.dump(self.open_config(), default_flow_style=False))

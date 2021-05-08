@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-
-from clilib.util.loader import Loader
-
-modules = ['libs', 'put', 'serve', 'setup', 's3']
-Loader.start_app(modules, "upldr_libs")

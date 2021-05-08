@@ -61,8 +61,22 @@ class main:
                     "type": str
                 },
                 {
+                    "names": ["--timeout"],
+                    "help": "Amount of time in seconds to wait before connecting to upload slave. Often there is a delay.",
+                    "default": 1,
+                    "required": False,
+                    "type": int
+                },
+                {
                     "names": ["--resume"],
                     "help": "Resume upload",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true"
+                },
+                {
+                    "names": ["--debug"],
+                    "help": "Debug output",
                     "required": False,
                     "default": False,
                     "action": "store_true"
@@ -94,20 +108,26 @@ class main:
         self.remote_config = self.remote_config_dir + "/remote.yaml"
         config_dir = Path(self.remote_config_dir)
         config_dir.mkdir(parents=True, exist_ok=True)
-        self.manual_mode()
+        self.make_request()
+        # self.manual_mode()
         # if self.args.manual:
         #     self.manual_mode()
         # else:
         #     self.make_request(self.args.resume)
 
     def make_request(self, resume=False):
-        remote = self.get_repo()
-        remote_scheme = remote['scheme']
-        remote_url = remote['url']
-        remote_port = remote['port']
-        remote_base_url = remote_scheme + remote_url + ":" + remote_port
-        remote_api_path = '/api/job/upload'
-        remote_url = remote_base_url + remote_api_path
+        remote = {
+            "url": self.args.remote_host,
+            "timeout": self.args.timeout
+        }
+        # remote = self.get_repo()
+        # remote_scheme = remote['scheme']
+        # remote_url = remote['url']
+        # remote_port = remote['port']
+        remote_scheme = "http"
+        remote_url = self.args.remote_host
+        remote_port = self.args.port
+        remote_base_url = "%s://%s:%d" % (remote_scheme, remote_url, remote_port)
         file_path = self.args.name
         if platform == "win32":
             file_name = self.args.name.split('\\')[-1]
@@ -120,7 +140,7 @@ class main:
             request = {'filename': file_name, 'type': 'upldr', 'name': file_name, 'category': self.args.category,
                        'tag': self.args.tag}
         # params = json.dumps(request).encode('utf8')
-        req = requests.post(remote_url, json=request)
+        req = requests.post(remote_base_url, json=request)
         response = req.json()
         self.log.debug("Response: " + json.dumps(response))
         remote['sock_port'] = response['port']

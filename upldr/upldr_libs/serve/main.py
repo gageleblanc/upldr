@@ -7,23 +7,49 @@ import socket
 
 class main:
     def __init__(self):
-        parser = arg_tools.build_full_parser()
-        subparser = parser.add_subparsers(dest='cmd', description='Starts an api server or standalone slave.')
-        parser_baz = subparser.add_parser('serve', help='Starts an api server or standalone slave.', description='Starts an api server or standalone slave.')
-        parser_baz.add_argument('mode', help="Server mode. This can be api or standalone")
-        parser_baz.add_argument('--destination', help="Upload destination", required='standalone' in sys.argv)
-        parser_baz.add_argument('--port', help="Port for slave to bind to", required=True)
-
-        if "standalone" in sys.argv:
-            parser_baz.add_argument('--native', help="Use native python instead of java lib", required=False, default=False, action='store_true')
-
-        if "--native" in sys.argv:
-            parser_baz.add_argument('--bind-addr', help="Address for slave to bind to", required=False, default='localhost')
-            parser_baz.add_argument('--timeout', help="Time in seconds before server times out", type=int, required=False,
-                                    default=30)
-            parser_baz.add_argument('--resume', help='Resume file upload - start from current end of file position.', action='store_true', required=False, default=False)
-
-        args = parser.parse_args()
+        self.spec = {
+            "desc": "Handles serving an upload slave",
+            "name": "serve",
+            "positionals": [],
+            "flags": [
+                {
+                    "names": ["--destination"],
+                    "help": "Local upload destination",
+                    "required": True,
+                    "default": False,
+                    "type": str
+                },
+                {
+                    "names": ["--port"],
+                    "help": "Local port to bind slave to.",
+                    "default": False,
+                    "required": True,
+                    "type": int
+                },
+                {
+                    "names": ["--bind-addr"],
+                    "help": "Bind address for upload slave.",
+                    "required": False,
+                    "default": "localhost",
+                    "type": str
+                },
+                {
+                    "names": ["--timeout"],
+                    "help": "Time in seconds before slave times out waiting for connection.",
+                    "required": False,
+                    "default": 30,
+                    "type": int
+                },
+                {
+                    "names": ["--resume"],
+                    "help": "Resume upload",
+                    "required": False,
+                    "default": False,
+                    "action": "store_true"
+                }
+            ]
+        }
+        args = arg_tools.build_full_subparser(self.spec)
         self.args = args
         self.log = Util.configure_logging(args, __name__)
         self.log.debug(args)
@@ -35,22 +61,23 @@ class main:
         lib_dir.mkdir(parents=True, exist_ok=True)
         config_dir = Path(self.upldr_config_dir)
         config_dir.mkdir(parents=True, exist_ok=True)
-        if self.args.mode == 'standalone':
-            if self.args.native:
-                self.run_standalone_native()
-            else:
-                self.run_standalone_slave()
-        elif self.args.mode == 'api':
-            self.run_api_server()
-        else:
-            parser.print_help()
+        self.run_standalone_native()
+        # if self.args.mode == 'standalone':
+        #     if self.args.native:
+        #         self.run_standalone_native()
+        #     else:
+        #         self.run_standalone_slave()
+        # elif self.args.mode == 'api':
+        #     self.run_api_server()
+        # else:
+        #     parser.print_help()
 
     def run_standalone_native(self):
-        self.log.info("Starting native standalone upload slave on port " + self.args.port + " and saving file to " + self.args.destination)
+        self.log.info("Starting native standalone upload slave on port %d and saving file to %s" % (self.args.port, self.args.destination))
         s = socket.socket()
         host = self.args.bind_addr
         port = self.args.port
-        self.log.info("Binding to " + host + ":" + port)
+        self.log.info("Binding to %s:%d" % (host, port))
         s.bind((host, int(port)))
         if self.args.resume:
             f = open(self.args.destination, 'ab')

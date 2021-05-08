@@ -1,7 +1,7 @@
 from botocore.exceptions import ClientError
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
-from upldr_libs.config_utils.loader import Loader
+from upldr.upldr_libs.config_utils.loader import Loader
 from pathlib import Path
 import mimetypes
 import boto3
@@ -135,10 +135,10 @@ class main:
                 # To simplify, assume this is hooked up to a single filename
                 with self._lock:
                     self._seen_so_far += bytes_amount
-                    if self._size == 0:
-                        percentage = 0
-                    else:
-                        percentage = (self._seen_so_far / self._size) * 100
+                    # if self._size == 0:
+                    #     percentage = 0
+                    # else:
+                    #     percentage = (self._seen_so_far / self._size) * 100
                     sys.stdout.write(
                         "\rUploading [%s]: %s uploaded     " % (self._filename, convertSize(self._seen_so_far)))
                     sys.stdout.flush()
@@ -160,6 +160,7 @@ class main:
                                              ExtraArgs={'ContentType': self.args.content_type,
                                              'ACL': self.config["acl"]})
             print("\r\n", end="")
+            self.log.debug(response)
             self.log.info("Upload Complete!")
         except ClientError as e:
             self.log.fatal(e)

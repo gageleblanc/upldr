@@ -4,3 +4,5 @@ build
 dist
 *.spec
 upldr.egg-info
+venv/
+venv

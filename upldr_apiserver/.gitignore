@@ -1,0 +1,8 @@
+__pycache__
+.idea
+build
+dist
+*.spec
+upldr.egg-info
+venv/
+venv

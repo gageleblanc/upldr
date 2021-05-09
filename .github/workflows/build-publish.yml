@@ -9,7 +9,12 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
-      - run: ./build.sh
+      - name: Build Upldr
+        working-directory: ./upldr
+        run: ./build.sh
+      - name: Build upldr_apilibs
+        working-directory: ./upldr_apiserver
+        run: ./build.sh
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:

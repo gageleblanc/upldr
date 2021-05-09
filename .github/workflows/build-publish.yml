@@ -11,10 +11,16 @@ jobs:
         uses: actions/checkout@v2
       - name: Build Upldr
         working-directory: ./upldr
-        run: ./build.sh
+        run: |
+          ls -larth
+          chmod +x build.sh
+          ./build.sh
       - name: Build upldr_apilibs
         working-directory: ./upldr_apiserver
-        run: ./build.sh
+        run: |
+          ls -larth
+          chmod +x build.sh
+          ./build.sh
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:

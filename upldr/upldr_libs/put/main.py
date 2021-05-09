@@ -1,5 +1,6 @@
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
+from upldr_libs.config_utils.loader import Loader
 from pathlib import Path
 import yaml
 import json
@@ -33,13 +34,6 @@ class main:
                     "type": str
                 },
                 {
-                    "names": ["--port"],
-                    "help": "Port to connect to.",
-                    "default": False,
-                    "required": True,
-                    "type": int
-                },
-                {
                     "names": ["-c", "--category"],
                     "help": "Category for upload.",
                     "required": False,
@@ -51,13 +45,6 @@ class main:
                     "help": "Tag for upload.",
                     "required": False,
                     "default": "default",
-                    "type": str
-                },
-                {
-                    "names": ["-a", "--remote-host"],
-                    "help": "Remote host to use for uploaded file.",
-                    "required": False,
-                    "default": "localhost",
                     "type": str
                 },
                 {
@@ -105,9 +92,15 @@ class main:
         self.log.debug(args)
         self.user_home = str(Path.home())
         self.remote_config_dir = self.user_home + "/.config/upldr"
-        self.remote_config = self.remote_config_dir + "/remote.yaml"
+        self.remote_config = self.remote_config_dir + "/config.json"
         config_dir = Path(self.remote_config_dir)
         config_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            config_loader = Loader(self.remote_config, auto_create=True, keys=['default', 'remotes'])
+            self.config = config_loader.get_config()
+        except TypeError as type_error:
+            self.log.fatal(type_error)
+            exit(1)
         self.make_request()
         # self.manual_mode()
         # if self.args.manual:
@@ -116,18 +109,24 @@ class main:
         #     self.make_request(self.args.resume)
 
     def make_request(self, resume=False):
-        remote = {
-            "url": self.args.remote_host,
-            "timeout": self.args.timeout
-        }
+        if self.args.remote:
+            try:
+                remote = self.config.remotes[self.args.remote]
+            except KeyError:
+                self.log.fatal("Remote \"%s\" not found in config." % self.args.remote)
+                exit(1)
+        else:
+            remote = self.config.remotes[self.config.default]
+        remote['timeout'] = self.args.timeout
+        # remote["url"] = self.args.remote_host
+        # remote["port"] = self.args.port
+        # remote["timeout"] = self.args.timeout
+
         # remote = self.get_repo()
         # remote_scheme = remote['scheme']
         # remote_url = remote['url']
         # remote_port = remote['port']
-        remote_scheme = "http"
-        remote_url = self.args.remote_host
-        remote_port = self.args.port
-        remote_base_url = "%s://%s:%d" % (remote_scheme, remote_url, remote_port)
+        remote_base_url = "%s://%s:%d" % (remote['scheme'], remote['url'], remote['port'])
         file_path = self.args.name
         if platform == "win32":
             file_name = self.args.name.split('\\')[-1]

@@ -1,15 +1,17 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from clilib.util.util import Util
-from .spawn_slave import SpawnSlave
+from upldr_libs.serve import slave
 import json
 import socket
+import threading
 
 
 class HttpApp:
-    def __init__(self, host="localhost", port=25565):
+    @staticmethod
+    def start_app(host="localhost", port=25565):
         logging = Util.configure_logging(__name__)
         server_address = (host, port)
-        httpd = HTTPServer(server_address, ServerObject)
+        httpd = ThreadingHTTPServer(server_address, ServerObject)
         logging.info('Starting httpd...\n')
         try:
             httpd.serve_forever()
@@ -17,6 +19,7 @@ class HttpApp:
             pass
         httpd.server_close()
         logging.info('Stopping httpd...\n')
+
 
 class ServerObject(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -40,9 +43,11 @@ class ServerObject(BaseHTTPRequestHandler):
             print("Bad request!")
             self._set_response()
             self.wfile.write(json.dumps({"Response": "Bad Request"}).encode('utf-8'))
-        print("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n" %
-            (str(self.path), str(self.headers), parsed_data))
-        print("Parsed Params: %s" % parsed_data)
+            return
+        # print("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n" %
+        #     (str(self.path), str(self.headers), parsed_data))
+        # print("Parsed Params: %s" % parsed_data)
+
         def free_port():
             free_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             free_socket.bind(('0.0.0.0', 0))
@@ -50,7 +55,14 @@ class ServerObject(BaseHTTPRequestHandler):
             port = free_socket.getsockname()[1]
             free_socket.close()
             return port
+
         rand_port = free_port()
-        SpawnSlave(category=parsed_data["category"], tag=parsed_data["tag"], filename=parsed_data["filename"], port=rand_port)
         self._set_response()
         self.wfile.write(json.dumps({"port": rand_port}).encode('utf-8'))
+        category = parsed_data["category"]
+        tag = parsed_data["tag"]
+        filename = parsed_data["filename"]
+        port = rand_port
+
+        config, destination = slave.slave_environment(category, tag, filename)
+        threading.Thread(target=slave.run_standalone_native, args=(config.host, port, int(config.timeout), destination)).start()

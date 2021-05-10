@@ -97,7 +97,7 @@ class main:
             exit(1)
         if self.args.bucket:
             self.config.bucket = self.args.bucket
-        if "acl" in self.args.acl:
+        if "acl" in self.args and self.args.acl:
             self.config.acl = self.args.acl
         self.log.debug(args)
         self.command_methods[args.subcmd]()

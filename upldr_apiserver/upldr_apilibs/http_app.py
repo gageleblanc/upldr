@@ -1,6 +1,9 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from clilib.util.util import Util
 from upldr_libs.serve import slave
+from upldr_apilibs.index_data import IndexData
+from pathlib import Path
+from upldr_libs.config_utils.loader import Loader as ConfigLoader
 import json
 import socket
 import threading
@@ -28,9 +31,19 @@ class ServerObject(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        print("GET request,\nPath: %s\nHeaders:\n%s\n", str(self.path), str(self.headers))
+        print("Running index")
+        IndexData()
         self._set_response()
-        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+        user_home = str(Path.home())
+        upldr_config_dir = user_home + "/.config/upldr_apiserver"
+        config_dir = Path(upldr_config_dir)
+        config_dir.mkdir(parents=True, exist_ok=True)
+        config_file = str(config_dir) + "/slave_config.json"
+        config_loader = ConfigLoader(config=config_file, keys=["data_dir", "timeout", "host"], auto_create=True)
+        config = config_loader.get_config()
+        with open(config.data_dir + "/index.json") as f:
+            data = json.load(f)
+        self.wfile.write(json.dumps(data).encode('utf-8'))
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])

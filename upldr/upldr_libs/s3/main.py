@@ -1,7 +1,7 @@
 from botocore.exceptions import ClientError
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
-from upldr.upldr_libs.config_utils.loader import Loader
+from upldr_libs.config_utils.loader import Loader
 from pathlib import Path
 import mimetypes
 import boto3

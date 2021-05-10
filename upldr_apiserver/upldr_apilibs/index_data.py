@@ -7,7 +7,7 @@ import json
 
 class IndexData:
     def __init__(self):
-        self.log = Util.configure_logging(__name__)
+        self.log = Util.configure_logging(name=__name__)
         user_home = str(Path.home())
         upldr_config_dir = user_home + "/.config/upldr_apiserver"
         config_dir = Path(upldr_config_dir)
@@ -16,9 +16,8 @@ class IndexData:
         config_loader = ConfigLoader(config=config_file, keys=["data_dir", "timeout", "host"], auto_create=True)
         self.config = config_loader.get_config()
         self.category_list = []
-        data_dirname = self.config.data_dir.split('/')[-1]
+        self.log.info("Indexing data directory")
         for (dirpath, dirnames, filenames) in walk(self.config.data_dir):
-            parsed_dir = dirpath.split('/')[-1]
             self.category_list = dirnames
             break
         self.categories = {}
@@ -33,7 +32,9 @@ class IndexData:
         self.tags_by_category = {}
         self.category_tags = {}
         for name, category in self.categories.items():
+            self.log.info("Found category: [%s]" % name)
             for tag in category["tags"]:
+                self.log.info("Found tag [%s] in category [%s]" % (tag, name))
                 if name in self.category_tags:
                     self.category_tags[name].append(tag)
                 else:
@@ -59,4 +60,9 @@ class IndexData:
             "tags_by_category": self.tags_by_category,
             "category_tags": self.category_tags
         }
-        print(json.dumps(self.data))
+        self._write_index()
+
+    def _write_index(self):
+        self.log.info("Writing indexes")
+        with open(self.config.data_dir + "/index.json", 'w', encoding='utf-8') as f:
+            json.dump(self.data, f, ensure_ascii=False, indent=4)

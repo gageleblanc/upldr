@@ -37,7 +37,7 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
   publish:
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/integration' || github.ref == 'refs/heads/update-upldr'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/integration'
     needs: build
     strategy:
       matrix:
@@ -48,16 +48,22 @@ jobs:
         uses: actions/checkout@v2
       - name: Build Upldr
         working-directory: ./upldr
-        run: ./build.sh
+        run: |
+          ls -larth
+          chmod +x build.sh
+          ./build.sh
       - name: Build upldr_apilibs
         working-directory: ./upldr_apiserver
-        run: ./build.sh
+        run: |
+          ls -larth
+          chmod +x build.sh
+          ./build.sh
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - name: Publish distribution 📦 to Test PyPI
-        if: github.ref == 'refs/heads/integration'
+        # if: github.ref == 'refs/heads/integration'
         uses: pypa/gh-action-pypi-publish@master
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}

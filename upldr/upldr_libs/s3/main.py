@@ -96,9 +96,9 @@ class main:
             self.log.fatal(type_error)
             exit(1)
         if self.args.bucket:
-            self.config["bucket"] = self.args.bucket
+            self.config.bucket = self.args.bucket
         if self.args.acl:
-            self.config["acl"] = self.args.acl
+            self.config.acl = self.args.acl
         self.log.debug(args)
         self.command_methods[args.subcmd]()
 
@@ -149,16 +149,16 @@ class main:
             if not self.args.content_type:
                 self.log.debug("Guessing MimeType if not set by argument")
                 self.args.content_type = mimetypes.MimeTypes().guess_type(self.args.source)[0]
-            self.log.debug("Bucket:       %s" % self.config["bucket"])
+            self.log.debug("Bucket:       %s" % self.config.bucket)
             self.log.debug("Content Type: %s" % self.args.content_type)
             self.log.debug("ACL:          %s" % self.args.acl)
             self.log.debug("Category:     %s" % self.args.category)
             self.log.debug("Tag:          %s" % self.args.tag)
             self.log.info("Uploading %s to %s" % (file, object_name))
-            response = s3_client.upload_file(self.args.source, self.config["bucket"], object_name,
+            response = s3_client.upload_file(self.args.source, self.config.bucket, object_name,
                                              Callback=ProgressPercentage(file),
                                              ExtraArgs={'ContentType': self.args.content_type,
-                                             'ACL': self.config["acl"]})
+                                             'ACL': self.config.acl})
             print("\r\n", end="")
             self.log.debug(response)
             self.log.info("Upload Complete!")

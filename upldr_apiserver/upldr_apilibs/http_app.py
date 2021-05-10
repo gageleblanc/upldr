@@ -12,13 +12,13 @@ class HttpApp:
         logging = Util.configure_logging(__name__)
         server_address = (host, port)
         httpd = ThreadingHTTPServer(server_address, ServerObject)
-        logging.info('Starting httpd...\n')
+        logging.info('Starting httpd...')
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             pass
         httpd.server_close()
-        logging.info('Stopping httpd...\n')
+        logging.info('Stopping httpd...')
 
 
 class ServerObject(BaseHTTPRequestHandler):

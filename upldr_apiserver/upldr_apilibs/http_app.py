@@ -4,6 +4,8 @@ from upldr_libs.serve import slave
 from upldr_apilibs.index_data import IndexData
 from pathlib import Path
 from upldr_libs.config_utils.loader import Loader as ConfigLoader
+from importlib.metadata import version
+import platform
 import json
 import socket
 import threading
@@ -28,6 +30,7 @@ class ServerObject(BaseHTTPRequestHandler):
     def _set_response(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
+        self.send_header('Server', 'UPLDR Apiserver v%s %s python v%s' % (version('upldr_apilibs'), platform.system(), platform.python_version()))
         self.end_headers()
 
     def do_GET(self):

@@ -55,6 +55,9 @@ class IndexData:
                         self.tags_by_category[name][tag].extend(filenames)
                     else:
                         self.tags_by_category[name][tag] = filenames
+                    self.log.info("Done processing [%s]" % dirpath)
+                self.log.info("Done processing tag [%s]" % tag)
+            self.log.info("Done processing category [%s]" % name)
 
         self.data = {
             "categories": self.categories,

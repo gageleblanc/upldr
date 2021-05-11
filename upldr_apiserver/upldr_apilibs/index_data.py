@@ -15,24 +15,22 @@ class IndexData:
         config_file = str(config_dir) + "/slave_config.json"
         config_loader = ConfigLoader(config=config_file, keys=["data_dir", "timeout", "host"], auto_create=True)
         self.config = config_loader.get_config()
-        self.category_list = []
         self.log.info("Indexing data directory")
-        for (dirpath, dirnames, filenames) in walk(self.config.data_dir):
-            self.category_list = dirnames
-            break
+        self.category_list = self._get_dirs(self.config.data_dir)
         self.categories = {}
+        self.category_files = []
         for category in self.category_list:
             cat_dir = "%s/%s" % (self.config.data_dir, category)
-            for (dirpath, dirnames, filenames) in walk(cat_dir):
-                self.categories[category] = {
-                    "tags": dirnames
-                }
-                break
+            self.categories[category] = {
+                "tags": self._get_dirs(cat_dir)
+            }
+            self.category_files = self._get_files(cat_dir)
         self.tagged_files = {}
         self.tags_by_category = {}
         self.category_tags = {}
         for name, category in self.categories.items():
             self.log.info("Found category: [%s]" % name)
+            self.tags_by_category[name] = {}
             for tag in category["tags"]:
                 self.log.info("Found tag [%s] in category [%s]" % (tag, name))
                 if name in self.category_tags:
@@ -40,22 +38,24 @@ class IndexData:
                 else:
                     self.category_tags[name] = [tag]
                 tag_dir = "%s/%s/%s" % (self.config.data_dir, name, tag)
-                for (dirpath, dirnames, filenames) in walk(tag_dir):
-                    self.log.info("Processing dir [%s]" % dirpath)
-                    if tag in self.tagged_files:
-                        self.tagged_files[tag].extend(filenames)
-                    else:
-                        self.tagged_files[tag] = filenames
-
-                    if name not in self.tags_by_category:
-                        self.tags_by_category[name] = {}
-
-                    self.log.info("Found files %s in tag [%s] in category [%s]" % (str(filenames), tag, name))
-                    if tag in self.tags_by_category[name]:
-                        self.tags_by_category[name][tag].extend(filenames)
-                    else:
-                        self.tags_by_category[name][tag] = filenames
-                    self.log.info("Done processing [%s]" % dirpath)
+                self.tagged_files[tag] = self._get_files(tag_dir)
+                self.tags_by_category[name][tag] = self._get_files(tag_dir)
+                # for (dirpath, dirnames, filenames) in walk(tag_dir):
+                #     self.log.info("Processing dir [%s]" % dirpath)
+                #     # if tag in self.tagged_files:
+                #     #     self.tagged_files[tag].extend(filenames)
+                #     # else:
+                #     #     self.tagged_files[tag] = filenames
+                #
+                #     if name not in self.tags_by_category:
+                #         self.tags_by_category[name] = {}
+                #
+                #     self.log.info("Found files %s in tag [%s] in category [%s]" % (str(filenames), tag, name))
+                #     if tag in self.tags_by_category[name]:
+                #         self.tags_by_category[name][tag].extend(filenames)
+                #     else:
+                #         self.tags_by_category[name][tag] = filenames
+                #     self.log.info("Done processing [%s]" % dirpath)
                 self.log.info("Done processing tag [%s]" % tag)
             self.log.info("Done processing category [%s]" % name)
 
@@ -71,3 +71,17 @@ class IndexData:
         self.log.info("Writing indexes")
         with open(self.config.data_dir + "/index.json", 'w', encoding='utf-8') as f:
             json.dump(self.data, f, ensure_ascii=False, indent=4)
+
+    def _get_files(self, path):
+        files = []
+        for (dirpath, dirnames, filenames) in walk(path):
+            files.extend(filenames)
+        return files
+
+    def _get_dirs(self, path):
+        dirs = []
+        for (dirpath, dirnames, filenames) in walk(path):
+            dirs.extend(dirnames)
+            break
+        return dirs
+

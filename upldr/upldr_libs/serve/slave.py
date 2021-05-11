@@ -1,5 +1,6 @@
 import socket
 from pathlib import Path
+from clilib.util.util import Util
 from upldr_libs.config_utils.loader import Loader as ConfigLoader
 
 
@@ -18,11 +19,11 @@ def slave_environment(category, tag, filename):
 
 
 def run_standalone_native(host, port, timeout, dest):
-    # log = Util.configure_logging()
-    print("begin standalone native")
-    print("Starting native standalone upload slave on port %d and saving file to %s" % (port, dest))
+    log = Util.configure_logging()
+    log.info("Begin native upload slave")
+    log.info("Starting native standalone upload slave on port %d and saving file to %s" % (port, dest))
     s = socket.socket()
-    print("Binding to %s:%d" % (host, port))
+    log.info("Binding to %s:%d" % (host, port))
     s.bind((host, int(port)))
     # if self.args.resume:
     #     f = open(self.args.destination, 'ab')
@@ -34,20 +35,20 @@ def run_standalone_native(host, port, timeout, dest):
     # else:
     #     f = open(self.args.destination, 'wb')
     f = open(dest, 'wb')
-    print("Listening with %d second timeout..." % timeout)
+    log.info("Listening with %d second timeout..." % timeout)
     s.settimeout(int(timeout))
     s.listen(5)
     try:
         c, addr = s.accept()
     except socket.timeout as ex:
-        print("No clients connected before timeout. Exiting.")
+        log.warn("No clients connected before timeout. Exiting.")
         exit(1)
-    print("Accepted connection")
+    log.info("Accepted connection")
     l = c.recv(8192)
     while l:
         f.write(l)
         l = c.recv(8192)
     f.close()
-    print("Transfer complete")
+    log.info("Transfer complete")
     c.close()
     return

@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='upldr_apilibs',
-    version='0.1.12',
+    version='0.1.13',
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",
     description="Upldr Library for apiserver",
@@ -16,7 +16,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'clilib>=1.9.8'
+        'clilib>=1.9.10'
     ],
     include_package_data=True,
 )

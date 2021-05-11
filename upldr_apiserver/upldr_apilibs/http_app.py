@@ -31,7 +31,8 @@ class ServerObject(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        print("Running index")
+        log = Util.configure_logging(name=__name__)
+        log.info("Running index")
         IndexData()
         self._set_response()
         user_home = str(Path.home())
@@ -46,6 +47,7 @@ class ServerObject(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode('utf-8'))
 
     def do_POST(self):
+        log = Util.configure_logging(name=__name__)
         content_length = int(self.headers['Content-Length'])
         content_type = str(self.headers['Content-Type'])
         # print(content_length)
@@ -53,13 +55,13 @@ class ServerObject(BaseHTTPRequestHandler):
         if content_type == "application/json":
             parsed_data = json.loads(post_data.decode('utf-8'))
         else:
-            print("Bad request!")
+            log.warn("Bad request!")
             self._set_response()
             self.wfile.write(json.dumps({"Response": "Bad Request"}).encode('utf-8'))
             return
-        # print("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n" %
-        #     (str(self.path), str(self.headers), parsed_data))
-        # print("Parsed Params: %s" % parsed_data)
+        log.info("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n" %
+            (str(self.path), str(self.headers), parsed_data))
+        log.info("Parsed Params: %s" % parsed_data)
 
         def free_port():
             free_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

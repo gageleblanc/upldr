@@ -5,7 +5,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name='upldr',
-    version='2.0.7',
+    version='2.0.8',
     scripts=['upldr'],
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",
@@ -20,7 +20,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'pyyaml>=5.3.1', 'requests>=2.22.0', 'clilib>=1.9.8', 'boto3'
+        'pyyaml>=5.3.1', 'requests>=2.22.0', 'clilib>=1.9.10', 'boto3'
     ],
     include_package_data=True,
 )

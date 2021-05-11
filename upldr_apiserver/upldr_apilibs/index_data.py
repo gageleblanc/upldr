@@ -41,6 +41,7 @@ class IndexData:
                     self.category_tags[name] = [tag]
                 tag_dir = "%s/%s/%s" % (self.config.data_dir, name, tag)
                 for (dirpath, dirnames, filenames) in walk(tag_dir):
+                    self.log.info("Processing dir [%s]" % dirpath)
                     if tag in self.tagged_files:
                         self.tagged_files[tag].extend(filenames)
                     else:
@@ -49,7 +50,7 @@ class IndexData:
                     if name not in self.tags_by_category:
                         self.tags_by_category[name] = {}
 
-                    self.log.info("Found files %s in category [%s]" % (str(filenames), name))
+                    self.log.info("Found files %s in tag [%s] in category [%s]" % (str(filenames), tag, name))
                     if tag in self.tags_by_category[name]:
                         self.tags_by_category[name][tag].extend(filenames)
                     else:

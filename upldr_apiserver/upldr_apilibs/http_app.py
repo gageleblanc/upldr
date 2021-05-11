@@ -32,6 +32,7 @@ class ServerObject(BaseHTTPRequestHandler):
 
     def do_GET(self):
         log = Util.configure_logging(name=__name__)
+        log.info("GET path: %s" % self.path)
         log.info("Running index")
         IndexData()
         self._set_response()

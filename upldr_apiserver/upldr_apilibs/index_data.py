@@ -49,6 +49,7 @@ class IndexData:
                     if name not in self.tags_by_category:
                         self.tags_by_category[name] = {}
 
+                    self.log.info("Found files %s in category [%s]" % (str(filenames), name))
                     if tag in self.tags_by_category[name]:
                         self.tags_by_category[name][tag].extend(filenames)
                     else:

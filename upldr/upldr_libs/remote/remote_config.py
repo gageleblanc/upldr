@@ -8,7 +8,7 @@ class RemoteConfig:
         self.config_object = config
         self.log = Util.configure_logging(__name__)
 
-    def add_remote(self, name, url, port, scheme):
+    def add_remote(self, name, url, port, scheme, timeout):
         remote_name = name
         remote_url = url
         remote_port = port
@@ -18,10 +18,11 @@ class RemoteConfig:
             self.config_object.remotes = {}
         if len(self.config_object.remotes.keys()) < 1:
             self.config_object.default = remote_name
-        self.config_object.remotes[remote_name]= {
+        self.config_object.remotes[remote_name] = {
             "url": remote_url,
             "port": remote_port,
-            "scheme": remote_scheme
+            "scheme": remote_scheme,
+            "timeout": timeout
         }
         self.config_object.write_config()
 

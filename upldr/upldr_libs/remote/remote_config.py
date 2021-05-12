@@ -7,16 +7,6 @@ class RemoteConfig:
     def __init__(self, config):
         self.config_object = config
         self.log = Util.configure_logging(__name__)
-        self.home = str(Path.home())
-        self.config_dir = "%s/.config/upldr" % self.home
-        self.config_path = "%s/.config/upldr/config.json" % self.home
-        Path(self.config_dir).mkdir(parents=True, exist_ok=True)
-        try:
-            config_loader = Loader(self.config_path, auto_create=True, keys=['default', 'remotes'])
-            self.config_object = config_loader.get_config()
-        except TypeError as type_error:
-            self.log.fatal(type_error)
-            exit(1)
 
     def add_remote(self, name, url, port, scheme):
         remote_name = name

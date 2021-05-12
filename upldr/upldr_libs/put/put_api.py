@@ -7,6 +7,7 @@ import json
 from upldr_libs.config_utils.loader import Loader
 from sys import platform
 from pathlib import Path
+import sys
 
 
 class PutApi:
@@ -27,7 +28,7 @@ class PutApi:
             return config_loader.get_config()
         except TypeError as type_error:
             log.fatal(type_error)
-            exit(1)
+            sys.exit(1)
 
     def send_file(self, remote, file, pos=False):
         before = time.time()
@@ -67,13 +68,13 @@ class PutApi:
     def make_request(self, config=None, rem=None, timeout=None, name=None, category=None, tag=None, resume=False):
         if not config.remotes:
             self.log.fatal("Must specify remotes config")
-            exit(1)
+            sys.exit(1)
         if rem:
             try:
                 remote = config.remotes[rem]
             except KeyError:
                 self.log.fatal("Remote \"%s\" not found in config." % rem)
-                exit(1)
+                sys.exit(1)
         else:
             remote = config.remotes[config.default]
         remote['timeout'] = timeout

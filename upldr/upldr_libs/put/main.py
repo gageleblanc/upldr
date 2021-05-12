@@ -1,6 +1,7 @@
 from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
 from upldr_libs.put.put_api import PutApi
+import sys
 from pathlib import Path
 import yaml
 import json
@@ -192,7 +193,7 @@ class main:
                 except yaml.YAMLError as exc:
                     print(exc)
                     print("Invalid yaml in cloud config!")
-                    exit(1)
+                    sys.exit(1)
         except FileNotFoundError as f:
             self.log.warn("No config found at " + self.remote_config + ", initializing empty dict for config...")
             config = {}

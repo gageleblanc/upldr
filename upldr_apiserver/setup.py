@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name='upldr_apilibs',
-    version='0.1.20',
+    version='0.1.21',
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",
     description="Upldr Library for apiserver",

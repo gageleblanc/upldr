@@ -30,7 +30,7 @@ class ServerObject(BaseHTTPRequestHandler):
     def _set_response(self):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
-        self.send_header('Server', 'UPLDR Apiserver v%s %s python v%s' % (version('upldr_apilibs'), platform.system(), platform.python_version()))
+        self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
         self.end_headers()
 
     def do_GET(self):
@@ -80,7 +80,10 @@ class ServerObject(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({"port": rand_port}).encode('utf-8'))
         category = parsed_data["category"]
         tag = parsed_data["tag"]
-        filename = parsed_data["filename"]
+        if "\\" in parsed_data["filename"]:
+            filename = parsed_data["filename"].split("\\")[-1]
+        else:
+            filename = parsed_data["filename"].split("/")[-1]
         port = rand_port
 
         config, destination = slave.slave_environment(category, tag, filename)

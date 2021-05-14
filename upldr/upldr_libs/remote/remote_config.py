@@ -1,10 +1,11 @@
 from clilib.util.util import Util
 from upldr_libs.config_utils.loader import Loader
+from upldr_libs.config_utils.config import Config
 from pathlib import Path
 
 
 class RemoteConfig:
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config_object = config
         self.log = Util.configure_logging(__name__)
 

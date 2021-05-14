@@ -44,6 +44,13 @@ class main:
                             "default": "http",
                             "required": False,
                             "type": str
+                        },
+                        {
+                            "names": ["--timeout"],
+                            "help": "Used to specify remote scheme other than the http.",
+                            "default": 1,
+                            "required": False,
+                            "type": int
                         }
                     ]
                 },
@@ -118,6 +125,7 @@ class main:
         remote_url = self.args.url
         remote_port = self.args.port
         remote_scheme = self.args.scheme
+        rc = RemoteConfig(self.config_object)
         self.log.debug("Adding %s:%d as %s" % (remote_url, remote_port, remote_name))
         if not isinstance(self.config_object.remotes, dict):
             self.config_object.remotes = {}

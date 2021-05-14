@@ -2,5 +2,5 @@
 
 from clilib.util.loader import Loader
 
-modules = ['put', 'serve', 's3', 'api', 'remote']
+modules = ['put', 'serve', 's3', 'api', 'remote', 'update']
 Loader.start_app(modules, "upldr_libs")

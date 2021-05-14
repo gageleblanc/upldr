@@ -5,7 +5,7 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name='upldr',
-    version='2.1.0',
+    version='2.1.8',
     scripts=['upldr'],
     author="Gage LeBlanc",
     author_email="gleblanc@symnet.io",

@@ -9,6 +9,7 @@ import platform
 import json
 import socket
 import threading
+import mimetypes
 
 
 class HttpApp:
@@ -33,22 +34,51 @@ class ServerObject(BaseHTTPRequestHandler):
         self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
         self.end_headers()
 
+    def _set_file_response(self, content_type, filename):
+        self.send_response(200)
+        self.send_header('Content-type', content_type)
+        self.send_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
+        self.end_headers()
+
+    def _not_found(self):
+        self.send_error(404)
+        self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
+        self.end_headers()
+        self.wfile.write("File not found".encode('utf-8'))
+
     def do_GET(self):
         log = Util.configure_logging(name=__name__)
-        log.info("GET path: %s" % self.path)
-        log.info("Running index")
-        IndexData()
-        self._set_response()
-        user_home = str(Path.home())
-        upldr_config_dir = user_home + "/.config/upldr_apiserver"
-        config_dir = Path(upldr_config_dir)
-        config_dir.mkdir(parents=True, exist_ok=True)
-        config_file = str(config_dir) + "/slave_config.json"
-        config_loader = ConfigLoader(config=config_file, keys=["data_dir", "timeout", "host"], auto_create=True)
-        config = config_loader.get_config()
-        with open(config.data_dir + "/index.json") as f:
-            data = json.load(f)
-        self.wfile.write(json.dumps(data).encode('utf-8'))
+        log.info("GET path: |%s|" % self.path)
+        if self.path != "/":
+            path_parts = self.path.strip().split('/')
+            log.info(path_parts)
+            category = path_parts[1]
+            tag = path_parts[2]
+            file = path_parts[3]
+            content_type = mimetypes.MimeTypes().guess_type(file)[0]
+            config, destination = slave.slave_environment(category, tag, file)
+            log.info("Serving file [%s]" % destination)
+            try:
+                with open(destination, 'rb') as f:
+                    self._set_file_response(content_type, file)
+                    self.wfile.write(f.read())
+            except FileNotFoundError:
+                self._not_found()
+        else:
+            log.info("Running index")
+            IndexData()
+            self._set_response()
+            user_home = str(Path.home())
+            upldr_config_dir = user_home + "/.config/upldr_apiserver"
+            config_dir = Path(upldr_config_dir)
+            config_dir.mkdir(parents=True, exist_ok=True)
+            config_file = str(config_dir) + "/slave_config.json"
+            config_loader = ConfigLoader(config=config_file, keys=["data_dir", "timeout", "host"], auto_create=True)
+            config = config_loader.get_config()
+            with open(config.data_dir + "/index.json") as f:
+                data = json.load(f)
+            self.wfile.write(json.dumps(data).encode('utf-8'))
 
     def do_POST(self):
         log = Util.configure_logging(name=__name__)

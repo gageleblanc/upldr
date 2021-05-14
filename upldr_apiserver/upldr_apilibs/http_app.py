@@ -1,3 +1,4 @@
+import os.path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from clilib.util.util import Util
 from upldr_libs.serve import slave
@@ -34,10 +35,11 @@ class ServerObject(BaseHTTPRequestHandler):
         self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
         self.end_headers()
 
-    def _set_file_response(self, content_type, filename):
+    def _set_file_response(self, content_type, filename, content_length):
         self.send_response(200)
         self.send_header('Content-type', content_type)
         self.send_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+        self.send_header('Content-Length', content_length)
         self.send_header('Server', 'UPLDR Apiserver v%s %s' % (version('upldr_apilibs'), platform.system()))
         self.end_headers()
 
@@ -61,7 +63,7 @@ class ServerObject(BaseHTTPRequestHandler):
             log.info("Serving file [%s]" % destination)
             try:
                 with open(destination, 'rb') as f:
-                    self._set_file_response(content_type, file)
+                    self._set_file_response(content_type, file, os.path.getsize(destination))
                     self.wfile.write(f.read())
             except FileNotFoundError:
                 self._not_found()

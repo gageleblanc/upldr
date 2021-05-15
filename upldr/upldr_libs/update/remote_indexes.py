@@ -46,5 +46,7 @@ class RemoteIndexes:
         self.log.info("Updating remote indexes...")
         if not isinstance(self.remotes_config.remotes, dict):
             self.log.warn("No remotes defined")
+            self.remotes_config.remotes = {}
+            self.remotes_config.write_config()
         for name, remote in self.remotes_config.remotes.items():
             self._update_index(name, remote)

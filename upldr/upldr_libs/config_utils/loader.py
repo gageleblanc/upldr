@@ -48,5 +48,12 @@ class Loader:
         else:
             return {}
 
+    def reload(self):
+        data = self._load_config()
+        if self.keys:
+            self._validate_top_level(data)
+        self.config = data
+        return self.get_config()
+
     def get_config(self):
         return Config(self.config, self.config_file)

@@ -15,28 +15,33 @@ class Scheduling:
             "weight": 0,
             "object": agent
         }
+        self.jobs[agent.addr] = []
 
     def del_agent(self, addr):
         self.log.warn("Removing agent [%s] from scheduling" % addr)
         del self.agents[addr]
 
     def _find_agent(self):
-        return min(self.jobs, key=self.jobs.get)
+        min_val = min([len(self.jobs[ele]) for ele in self.jobs])
+        for ele in self.jobs:
+            if len(self.jobs[ele]) == min_val:
+                return self.agents[ele]
 
     def _get_worker_weight(self, worker):
         if not isinstance(self.jobs[worker], list):
             self.jobs[worker] = []
         return len(self.jobs[worker])
 
-    def _register_job(self, agent, job_id):
+    def _register_job(self, agent: str, job_id: str):
         if not isinstance(self.jobs[agent], list):
             self.jobs[agent] = []
         self.jobs[agent].append(job_id)
 
     def worker(self):
         worker = self._find_agent()
+        self.log.info("Got worker [%s] with [%d jobs]" % (worker["object"].addr, len(self.jobs[worker["object"].addr])))
         job_id = str(uuid.uuid4())
-        self._register_job(worker, job_id)
+        self._register_job(worker["object"].addr, job_id)
         worker["weight"] = (worker["weight"] + 1)
         return worker["object"].addr, job_id
 

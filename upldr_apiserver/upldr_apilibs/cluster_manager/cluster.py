@@ -39,17 +39,19 @@ class Cluster:
 
     def _register_client(self, client: socket.socket, addr):
         self.log.info("Registering client")
-        payload = client.recv(1024)
-        self.log.info(payload)
-        msg = payload
-        while payload:
-            self.log.info(msg[-1:])
+        # payload = client.recv(1024)
+        # self.log.info(payload)
+        msg = b''
+        read = True
+        while read:
             msg += client.recv(1024)
+            self.log.info("Current Message [%s] Current End [%s]" % (msg, msg[-1:]))
             # self.log.info(msg.ends)
             if msg.endswith(b'\n'):
                 self.log.info("break for " + msg.decode()[:-1])
-                break
-        request = json.loads(msg.decode()[:-1])
+                read = False
+                # break
+        request = json.loads(msg.decode())
         if not self._validate_registration_request(request):
             self._send_error_response(client, 500, "Malformed Request", addr)
             self.log.warn("Agent [%s] sent malformed registration request: [%s]" % (addr, json.dumps(request)))
@@ -58,7 +60,7 @@ class Cluster:
                 agent = AgentObject(client, request["name"], addr)
                 self.agents[addr] = agent
                 self.scheduler.add_agent(agent)
-                threading.Thread(target=self._agent_listener, args=(agent,)).start()
+                # threading.Thread(target=self._agent_listener, args=(agent,)).start()
                 self.log.info("Registered agent [%s]" % addr)
             else:
                 self._send_error_response(client, 401, "Invalid Registration Token.", addr)
@@ -88,23 +90,42 @@ class Cluster:
     def _agent_listener(self, agent: AgentObject):
         self.log.info("Listening for input from [%s]" % agent.addr)
         while agent.listen:
-            payload = agent.socket.recv(1024)
-            msg = payload
-            while payload:
-                msg += agent.socket.recv(1024)
-            request = json.loads(msg)
-            self.log.info(request)
+            message = self._get_response(agent)
+            self.log.info(message)
 
+    def _get_response(self, agent: AgentObject):
+        msg = b''
+        read = True
+        while read:
+            msg += agent.socket.recv(1024)
+            if msg.endswith(b'\n'):
+                self.log.debug("Received message [%s] from agent [%s]" % (msg.decode('utf-8'), agent.addr))
+                read = False
+        response = json.loads(msg.decode('utf-8'))
+        return response
+
+    def _wait_for_port(self, agent: AgentObject):
+        wait = True
+        while wait:
+            response = self._get_response(agent)
+            if "port" in response:
+                return response
+            else:
+                agent.command_queue.put(response)
 
     def send_command(self, command: dict):
-        command_bytes = json.dumps({
-            "Response": 1200,
-            "Command": command
-        }).encode('utf-8')
-        worker = self.scheduler.worker()
+        worker, job_id = self.scheduler.worker()
+        self.log.info("Sending command with ID [%s] to [%s]" % (job_id, worker))
         agent = self._get_agent(worker)
         if agent:
+            command_bytes = json.dumps({
+                "Response": 1200,
+                "Command": command,
+                "JobID": job_id
+            }) + "\n"
+            command_bytes = command_bytes.encode('utf-8')
             client = agent.socket
             client.send(command_bytes)
+            return self._wait_for_port(agent)
         else:
             self.log.warn("Cannot send command to agent.")

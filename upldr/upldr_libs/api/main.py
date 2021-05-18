@@ -118,12 +118,12 @@ class main:
         self.command_map[self.args.subcmd]()
 
     def _serve(self):
-        api_thread = threading.Thread(target=HttpApp.start_app, args=(self.args.bind_addr, self.args.port))
+        api_thread = threading.Thread(target=HttpApp.start_app, args=(self.args.bind_addr, self.args.port, True if self.args.start_cluster else False))
         api_thread.start()
-        if self.args.start_cluster:
-            cluster = Cluster()
-            cluster_thread = threading.Thread(target=cluster.start)
-            cluster_thread.start()
+        # if self.args.start_cluster:
+        #     cluster = Cluster()
+        #     cluster_thread = threading.Thread(target=cluster.start)
+        #     cluster_thread.start()
 
     def _agent(self):
         Agent(self.args.master, self.args.port)

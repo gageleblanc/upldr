@@ -1,3 +1,4 @@
+import queue
 import socket
 
 
@@ -8,3 +9,4 @@ class AgentObject:
         self.port = client.getsockname()
         self.addr: str = addr
         self.listen = True
+        self.command_queue = queue.Queue()

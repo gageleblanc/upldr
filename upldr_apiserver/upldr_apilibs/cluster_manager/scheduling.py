@@ -21,18 +21,12 @@ class Scheduling:
         del self.agents[addr]
 
     def _find_agent(self):
-        light_agent = None
-        for addr, agent in self.agents.items():
-            if not light_agent:
-                light_agent = agent["object"]
-            else:
-                if agent["weight"] < light_agent["weight"]:
-                    light_agent = agent["object"]
-        return light_agent
+        return min(self.jobs, key=self.jobs.get)
 
     def _get_worker_weight(self, worker):
         if not isinstance(self.jobs[worker], list):
-
+            self.jobs[worker] = []
+        return len(self.jobs[worker])
 
     def _register_job(self, agent, job_id):
         if not isinstance(self.jobs[agent], list):
@@ -42,11 +36,13 @@ class Scheduling:
     def worker(self):
         worker = self._find_agent()
         job_id = str(uuid.uuid4())
+        self._register_job(worker, job_id)
         worker["weight"] = (worker["weight"] + 1)
         return worker["object"].addr, job_id
 
-    def done(self, addr):
+    def done(self, addr, job_id):
         worker = self.agents[addr]
+        self.jobs[worker].remove(job_id)
         if worker["weight"] > 0:
             worker["weight"] = (worker["weight"] - 1)
         else:

@@ -21,6 +21,9 @@ class Cluster:
         self.config = config_loader.get_config()
         self.agents = {}
 
+    def start(self):
+        self._cluster_socket()
+
     def _cluster_socket(self):
         self.log.info("Starting upldr cluster...")
         # self.log.info("Starting native standalone upload slave on port %d and saving file to %s" % (port, dest))
@@ -30,16 +33,23 @@ class Cluster:
         s.listen(5)
         while True:
             c, addr = s.accept()
-            threading.Thread(target=self._register_client, args=(c, addr))
-            self.log.info("Accepted connection from [%s]" % addr)
+            ip = addr[0]
+            threading.Thread(target=self._register_client, args=(c, ip)).start()
+            self.log.info("Accepted connection from [%s]" % str(addr))
 
     def _register_client(self, client: socket.socket, addr):
+        self.log.info("Registering client")
         payload = client.recv(1024)
+        self.log.info(payload)
         msg = payload
         while payload:
-            msg += payload
-            payload = client.recv(1024)
-        request = json.loads(msg)
+            self.log.info(msg[-1:])
+            msg += client.recv(1024)
+            # self.log.info(msg.ends)
+            if msg.endswith(b'\n'):
+                self.log.info("break for " + msg.decode()[:-1])
+                break
+        request = json.loads(msg.decode()[:-1])
         if not self._validate_registration_request(request):
             self._send_error_response(client, 500, "Malformed Request", addr)
             self.log.warn("Agent [%s] sent malformed registration request: [%s]" % (addr, json.dumps(request)))
@@ -48,6 +58,8 @@ class Cluster:
                 agent = AgentObject(client, request["name"], addr)
                 self.agents[addr] = agent
                 self.scheduler.add_agent(agent)
+                threading.Thread(target=self._agent_listener, args=(agent,)).start()
+                self.log.info("Registered agent [%s]" % addr)
             else:
                 self._send_error_response(client, 401, "Invalid Registration Token.", addr)
                 self.log.warn("Agent [%s] sent bad registration token: [%s]" % (addr, request["token"]))
@@ -81,6 +93,7 @@ class Cluster:
             while payload:
                 msg += agent.socket.recv(1024)
             request = json.loads(msg)
+            self.log.info(request)
 
 
     def send_command(self, command: dict):

@@ -2,7 +2,11 @@ from clilib.util.util import Util
 from clilib.util.arg_tools import arg_tools
 from upldr_apilibs.index_data import IndexData
 from upldr_apilibs.http_app import HttpApp
+from upldr_apilibs.cluster_manager.cluster import Cluster
+from upldr_apilibs.agent_manager.agent import Agent
 from pathlib import Path
+import threading
+
 
 class main:
     def __init__(self):
@@ -26,8 +30,8 @@ class main:
                         {
                             "names": ["--port"],
                             "help": "Local port to bind slave to.",
-                            "default": False,
-                            "required": True,
+                            "default": 25565,
+                            "required": False,
                             "type": int
                         },
                         {
@@ -50,6 +54,34 @@ class main:
                             "required": False,
                             "default": False,
                             "action": "store_true"
+                        },
+                        {
+                            "names": ["--start-cluster"],
+                            "help": "Start cluster manager with api server",
+                            "required": False,
+                            "default": False,
+                            "action": "store_true"
+                        },
+                    ]
+                },
+                {
+                    "name": "agent",
+                    "desc": "Start cluster agent",
+                    "positionals": [],
+                    "flags": [
+                        {
+                            "names": ["--master"],
+                            "help": "Local upload destination",
+                            "required": False,
+                            "default": "localhost",
+                            "type": str
+                        },
+                        {
+                            "names": ["--port"],
+                            "help": "Local port to bind slave to.",
+                            "default": 25566,
+                            "required": False,
+                            "type": int
                         }
                     ]
                 },
@@ -80,12 +112,21 @@ class main:
         config_dir.mkdir(parents=True, exist_ok=True)
         self.command_map = {
             "serve": self._serve,
-            "index": self._index
+            "index": self._index,
+            "agent": self._agent
         }
         self.command_map[self.args.subcmd]()
 
     def _serve(self):
-        HttpApp.start_app(self.args.bind_addr, self.args.port)
+        api_thread = threading.Thread(target=HttpApp.start_app, args=(self.args.bind_addr, self.args.port))
+        api_thread.start()
+        if self.args.start_cluster:
+            cluster = Cluster()
+            cluster_thread = threading.Thread(target=cluster.start)
+            cluster_thread.start()
+
+    def _agent(self):
+        Agent(self.args.master, self.args.port)
 
     def _index(self):
         IndexData()

@@ -47,7 +47,8 @@ class Scheduling:
 
     def done(self, addr, job_id):
         worker = self.agents[addr]
-        self.jobs[worker].remove(job_id)
+        self.log.info(self.jobs)
+        self.jobs[worker["object"].addr].remove(job_id)
         if worker["weight"] > 0:
             worker["weight"] = (worker["weight"] - 1)
         else:

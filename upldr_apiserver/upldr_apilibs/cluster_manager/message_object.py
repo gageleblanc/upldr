@@ -1,5 +1,6 @@
 class MessageObject:
-    def __init__(self, agent: str, type: str, args: dict):
+    def __init__(self, agent: str, type: str, job: str, data: dict):
         self.agent = agent
         self.type = type
-        self.args = args
+        self.job = job
+        self.data = data

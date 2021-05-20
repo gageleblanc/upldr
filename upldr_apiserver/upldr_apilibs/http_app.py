@@ -1,4 +1,5 @@
 import os.path
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from clilib.util.util import Util
 from upldr_libs.serve import slave
@@ -38,6 +39,7 @@ class HttpApp:
 
 class ClusteredServerObject(BaseHTTPRequestHandler):
     cluster: Cluster
+    wait_for_response: bool = False
 
     def _set_response(self):
         self.send_response(200)
@@ -109,17 +111,24 @@ class ClusteredServerObject(BaseHTTPRequestHandler):
             (str(self.path), str(self.headers), parsed_data))
         log.info("Parsed Params: %s" % parsed_data)
 
-        response = self.cluster.send_command({
+        worker, job_id = self.cluster.send_command({
             "type": "upload",
             "category": parsed_data["category"],
             "tag": parsed_data["tag"],
             "filename": parsed_data["filename"]
         })
-        res_json = json.dumps(response) + "\n"
-        res_bytes = res_json.encode('utf-8')
-        self._set_response()
-        self.wfile.write(res_bytes)
 
+        def send_port(data):
+            res_json = json.dumps({"port": data['port']}) + "\n"
+            res_bytes = res_json.encode('utf-8')
+            self._set_response()
+            self.wfile.write(res_bytes)
+            ClusteredServerObject.wait_for_response = False
+
+        ClusteredServerObject.wait_for_response = True
+        self.cluster.on(job_id, "port", send_port)
+        while ClusteredServerObject.wait_for_response:
+            time.sleep(0.1)
         # def free_port():
         #     free_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #     free_socket.bind(('0.0.0.0', 0))

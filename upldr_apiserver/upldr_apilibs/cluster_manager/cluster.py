@@ -4,6 +4,7 @@ from clilib.util.util import Util
 from upldr_libs.config_utils.loader import Loader as ConfigLoader
 from .agent_object import AgentObject
 from .scheduling import Scheduling
+from .message_object import MessageObject
 import threading
 import json
 
@@ -20,6 +21,7 @@ class Cluster:
         self.scheduler = Scheduling()
         self.config = config_loader.get_config()
         self.agents = {}
+        self.events = {}
 
     def start(self):
         self._cluster_socket()
@@ -60,7 +62,7 @@ class Cluster:
                 agent = AgentObject(client, request["name"], addr)
                 self.agents[addr] = agent
                 self.scheduler.add_agent(agent)
-                # threading.Thread(target=self._agent_listener, args=(agent,)).start()
+                threading.Thread(target=self._agent_listener, args=(agent,)).start()
                 self.log.info("Registered agent [%s]" % addr)
             else:
                 self._send_error_response(client, 401, "Invalid Registration Token.", addr)
@@ -87,11 +89,36 @@ class Cluster:
         else:
             self.log.warn("Agent [%s] is not registered!")
 
+    def _fire_events(self, job_id, ty, data):
+        events = self.events
+        for handler in events[job_id][ty]:
+            handler(data)
+            self.events[job_id][ty].remove(handler)
+
     def _agent_listener(self, agent: AgentObject):
         self.log.info("Listening for input from [%s]" % agent.addr)
         while agent.listen:
             message = self._get_response(agent)
-            self.log.info(message)
+            self.log.info("Agent [%s] says [%s]" % (agent.name, json.dumps(message)))
+            if message["JobID"] in self.events:
+                if message["Type"] in self.events[message["JobID"]]:
+                    self._fire_events(message["JobID"], message["Type"], message["Data"])
+                elif message["Type"] == "JobFinished":
+                    self.log.info("Agent [%s] reports job [%s] as finished." % (agent.name, message["JobID"]))
+                    self._job_finished(agent.addr, message["JobID"])
+                else:
+                    self.log.info("No handlers for event type [%s] with job ID [%s]" % (message["Type"], message["JobID"]))
+            elif message["Type"] == "JobFinished":
+                self.log.info("Agent [%s] reports job [%s] as finished." % (agent.name, message["JobID"]))
+                self._job_finished(agent.addr, message["JobID"])
+                # self.scheduler.done(agent.addr, message["JobID"])
+            else:
+                self.log.info("No handlers found for event type [%s] from [%s]" % (message["Type"], agent.name))
+
+    def _job_finished(self, agent: str, job_id: str):
+        self.scheduler.done(agent, job_id)
+        if job_id in self.events:
+            del self.events[job_id]
 
     def _get_response(self, agent: AgentObject):
         msg = b''
@@ -99,8 +126,9 @@ class Cluster:
         while read:
             msg += agent.socket.recv(1024)
             if msg.endswith(b'\n'):
-                self.log.debug("Received message [%s] from agent [%s]" % (msg.decode('utf-8'), agent.addr))
+                self.log.info("Received message [%s] from agent [%s]" % (msg.decode('utf-8'), agent.addr))
                 read = False
+
         response = json.loads(msg.decode('utf-8'))
         return response
 
@@ -113,9 +141,14 @@ class Cluster:
             else:
                 agent.command_queue.put(response)
 
-    def send_command(self, command: dict):
-        worker, job_id = self.scheduler.worker()
-        self.log.info("Sending command with ID [%s] to [%s]" % (job_id, worker))
+    def on(self, job_id=None, ty=None, func=None):
+        if job_id not in self.events:
+            self.events[job_id] = {}
+        if ty not in self.events[job_id]:
+            self.events[job_id][ty] = []
+        self.events[job_id][ty].append(func)
+
+    def _send_command(self, worker: str, job_id: str, command: dict):
         agent = self._get_agent(worker)
         if agent:
             command_bytes = json.dumps({
@@ -126,6 +159,12 @@ class Cluster:
             command_bytes = command_bytes.encode('utf-8')
             client = agent.socket
             client.send(command_bytes)
-            return self._wait_for_port(agent)
+            # return worker, job_id
         else:
             self.log.warn("Cannot send command to agent.")
+
+    def send_command(self, command: dict):
+        worker, job_id = self.scheduler.worker()
+        self.log.info("Sending command with ID [%s] to [%s]" % (job_id, worker))
+        threading.Thread(target=self._send_command, args=(worker, job_id, command)).start()
+        return worker, job_id
